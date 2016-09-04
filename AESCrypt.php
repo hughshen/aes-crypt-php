@@ -2,13 +2,11 @@
 
 class AESCrypt
 {
-	public $text;
-	public $result;
-
 	private $key;
 	private $iv;
+	private $encrypter;
 
-	public function __construct($key = '')
+	public function __construct($key = '', $algorithm = MCRYPT_RIJNDAEL_128, $mode = MCRYPT_MODE_ECB)
 	{
 		if ($key == '') {
 			$key = 'UgkF1pOusN1KaZe5OaWA646Nw04DqPgE';
@@ -18,48 +16,41 @@ class AESCrypt
 
 		$this->key = $key;
 		$this->iv = substr($this->key, 0, 16);
+		$this->encrypter = mcrypt_module_open($algorithm, '', $mode, '');
 	}
 
 	// Encrypt
-	public function encrypt()
-	{
-		$encrypter = mcrypt_module_open(MCRYPT_RIJNDAEL_128, '', MCRYPT_MODE_ECB, '');
-
-		$blockSize = mcrypt_enc_get_block_size($encrypter);
-		$padding = $blockSize - strlen($this->text) % $blockSize;
-		$paddingText = str_repeat(chr($padding), $padding);
-		// Add padding text
-		$paddedText = $this->text . $paddingText;
-
-		mcrypt_generic_init($encrypter, $this->key, $this->iv);
-		$encrypted = mcrypt_generic($encrypter, $paddedText);
-
-		mcrypt_generic_deinit($encrypter);
-		mcrypt_module_close($encrypter);
-
-		$this->result = base64_encode($encrypted);
+	public function encrypt($originText) {
+		$originText = $this->pkcs5padding($originText, mcrypt_enc_get_block_size($this->encrypter));
+		mcrypt_generic_init($this->encrypter, $this->key, $this->iv);
+		$cipherText = mcrypt_generic($this->encrypter, $originText);
+		mcrypt_generic_deinit($this->encrypter);
+		return base64_encode($cipherText);
 	}
 
 	// Decrypt
-	public function decrypt()
-	{
-		$originText = base64_decode($this->text);
-		$encrypter = mcrypt_module_open(MCRYPT_RIJNDAEL_128, '', MCRYPT_MODE_ECB, '');
-
-		mcrypt_generic_init($encrypter, $this->key, $this->iv);
-		$originText = mdecrypt_generic($encrypter, $originText);
-		mcrypt_generic_deinit($encrypter);
-
-		// Remove padding text
-		$length = strlen($originText);
-		$unpadding = ord($originText[$length - 1]);
-
-		$this->result = substr($originText, 0, $length - $unpadding);
+	public function decrypt($cipherText) {
+		$cipherText = base64_decode($cipherText);
+		mcrypt_generic_init($this->encrypter, $this->key, $this->iv);
+		$originText = mdecrypt_generic($this->encrypter, $cipherText);
+		mcrypt_generic_deinit($this->encrypter);
+		return $this->pkcs5unPadding($originText);
 	}
 
-	public function setText($text = '')
-	{
-		$this->text = $text;
+	public function close() {
+		mcrypt_module_close($this->encrypter);
+	}
+
+	private function pkcs5padding($text, $blockSize) {
+		$padding = $blockSize - strlen($text) % $blockSize;
+		$paddingText = str_repeat(chr($padding), $padding);
+		return $text . $paddingText;
+	}
+
+	private function pkcs5unPadding($text) {
+		$length = strlen($text);
+		$unpadding = ord($text[$length - 1]);
+		return substr($text, 0, $length - $unpadding);
 	}
 }
 

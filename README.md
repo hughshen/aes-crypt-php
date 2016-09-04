@@ -5,10 +5,7 @@ require('AESCrypt.php');
 
 $crypt = new AESCrypt();
 
-$text = 'encrypt string';
+echo 'cipher text: ' . $crypt->encrypt('test');
 
-$crypt->setText($text);
-$crypt->encrypt();
-
-echo $crypt->result;
+$crypt->close();
 ```

@@ -1,5 +1,9 @@
 <?php
 
+// Origin: encrypt string
+// Encrypted: Hh2sjUUckvMQ2XsiPCVYgw==
+// Decrypted: encrypt string
+
 require('AESCrypt.php');
 
 $crypt = new AESCrypt();
@@ -7,14 +11,10 @@ $crypt = new AESCrypt();
 $text = 'encrypt string';
 echo 'Origin: ' . $text . '<hr>';
 
-$crypt->setText($text);
-$crypt->encrypt();
-$encrypted  = $crypt->result;
-
+$encrypted = $crypt->encrypt($text);
 echo 'Encrypted: ' . $encrypted . '<hr>';
 
-$crypt->setText($encrypted);
-$crypt->decrypt();
-$decrypted = $crypt->result;
-
+$decrypted = $crypt->decrypt($encrypted);
 echo 'Decrypted: ' . $decrypted . '<hr>';
+
+$crypt->close();
