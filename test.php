@@ -6,7 +6,7 @@
 
 require('AESCrypt.php');
 
-$crypt = new AESCrypt();
+$crypt = new AESCrypt('UgkF1pOusN1KaZe5OaWA646Nw04DqPgE');
 
 $text = 'encrypt string';
 echo 'Origin: ' . $text . '<hr>';
@@ -17,4 +17,4 @@ echo 'Encrypted: ' . $encrypted . '<hr>';
 $decrypted = $crypt->decrypt($encrypted);
 echo 'Decrypted: ' . $decrypted . '<hr>';
 
-$crypt->close();
+echo 'Current iv (base64_encode): ' . $crypt->getIv() . '<hr>';
